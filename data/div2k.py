@@ -43,3 +43,8 @@ class DIV2KDataset(data.Dataset):
         # batch_images, batch_labels = self.seq(image=batch_images, segmentation_maps=batch_labels)
 
         return image, hr_label, lr_label
+
+def div2k_dataloader(root, batch_size, shuffle=True, num_workers=3):
+    return data.DataLoader()
+
+trainloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=3)
