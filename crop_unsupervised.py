@@ -7,8 +7,8 @@ from tqdm import tqdm
 def parse_args():
     parser = argparse.ArgumentParser(description='crop')
     # config
-    parser.add_argument('-h', '--hr-path', default='/data/data/DIV2K/unsupervised/train_HR', type=str)
-    parser.add_argument('-l', '--lr-path', default='/data/data/DIV2K/unsupervised/train_LR_difficult', type=str)
+    parser.add_argument('-h', '--hr-path', default='/data/data/DIV2K/unsupervised/hr', type=str)
+    parser.add_argument('-l', '--lr-path', default='/data/data/DIV2K/unsupervised/lr', type=str)
     parser.add_argument('-t', '--target-dir', default='/data/data/DIV2K/train_dataset', type=str)
     parser.add_argument('--crop-size', default=64, type=int)
     parser.add_argument('--crop-step', default=32, type=int)
