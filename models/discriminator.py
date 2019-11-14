@@ -3,7 +3,7 @@ import torch.nn.functional as F
 
 
 class Discriminator_lr(nn.Module):
-    def __init__(self, in_channels=1, in_h=64, in_w=64):
+    def __init__(self, in_channels=1, in_h=16, in_w=16):
         super(Discriminator_lr, self).__init__()
         self.conv1 = nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1)

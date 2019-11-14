@@ -8,6 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 # from torchvision.datasets.cityscapes import Cityscapes
 from torchvision.transforms.functional import to_tensor
+from PIL import Image
 
 from data import DIV2KDataset
 from models import Discriminator_sr, Discriminator_lr, EDSR, Generator_sr, Generator_lr
@@ -166,6 +167,13 @@ def main(args):
     torch.save(SR.state_dict(), os.path.join(args.log_dir, 'final_weights_SR.pkl'))
     torch.save(G_3.state_dict(), os.path.join(args.log_dir, 'final_weights_G_3.pkl'))
     torch.save(D_2.state_dict(), os.path.join(args.log_dir, 'final_weights_D_2.pkl'))
+
+    image = Image.open('/data/data/DIV2K/unsupervused/lr/0001x4d.png')
+    image.save('0001x4d.png')
+    image_tensor = torchvision.transforms.functional.to_tensor(image)
+    sr_image_tensor = SR(G_1(image_tensor))
+    sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor)
+    sr_image.save('0001x4d_sr.png')
 
 
 
