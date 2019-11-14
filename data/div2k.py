@@ -44,7 +44,3 @@ class DIV2KDataset(data.Dataset):
 
         return image, hr_label, lr_label
 
-def div2k_dataloader(root, batch_size, shuffle=True, num_workers=3):
-    return data.DataLoader()
-
-trainloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=3)
