@@ -76,8 +76,12 @@ def main(args):
     print('-' * 20)
 
     for epoch in range(args.epochs):
+        G_1.train()
+        SR.train()
+        iter_index = 0
         start = timeit.default_timer()
         for _, batch in enumerate(trainloader, 0):
+            iter_index += 1
             image, label_hr, label_lr = batch
             for key in optim.keys():
                 optim[key].zero_grad()
@@ -144,14 +148,23 @@ def main(args):
             optim['SR'].step()
             optim['G_3'].step()
 
-            print('SR: loss_D2={}, loss_SR={}, loss_cycle={}, loss_idt={}, loss_tv={}'.format(loss_D2.item(),
-                                                                                              loss_SR.item(),
-                                                                                              loss_cycle.item(),
-                                                                                              loss_idt.item(),
-                                                                                              loss_tv.item()))
+            if iter_index % 100 == 0:
+                print('SR: loss_D2={}, loss_SR={}, loss_cycle={}, loss_idt={}, loss_tv={}'.format(loss_D2.item(),
+                                                                                                  loss_SR.item(),
+                                                                                                  loss_cycle.item(),
+                                                                                                  loss_idt.item(),
+                                                                                                  loss_tv.item()))
 
         end = timeit.default_timer()
         print('epoch {}, using {} seconds'.format(epoch, end - start))
+
+        G_1.eval()
+        SR.eval()
+        image = Image.open('/data/data/DIV2K/unsupervused/lr/0001x4d.png')
+        image_tensor = torchvision.transforms.functional.to_tensor(image)
+        sr_image_tensor = SR(G_1(image_tensor))
+        sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor)
+        sr_image.save(os.path.join(args.log_dir, '0001x4d_sr_{}.png'.format(str(epoch))))
 
         torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_1.pkl'))
         torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
@@ -169,11 +182,11 @@ def main(args):
     torch.save(D_2.state_dict(), os.path.join(args.log_dir, 'final_weights_D_2.pkl'))
 
     image = Image.open('/data/data/DIV2K/unsupervused/lr/0001x4d.png')
-    image.save('0001x4d.png')
+    image.save(os.path.join(args.log_dir, '0001x4d.png'))
     image_tensor = torchvision.transforms.functional.to_tensor(image)
     sr_image_tensor = SR(G_1(image_tensor))
     sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor)
-    sr_image.save('0001x4d_sr.png')
+    sr_image.save(os.path.join(args.log_dir, '0001x4d_sr.png'))
 
 
 
