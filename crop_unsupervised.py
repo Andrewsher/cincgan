@@ -7,8 +7,8 @@ from tqdm import tqdm
 def parse_args():
     parser = argparse.ArgumentParser(description='crop')
     # config
-    parser.add_argument('-h', '--hr-path', default='/data/data/DIV2K/hr_train', type=str)
-    parser.add_argument('-l', '--lr-path', default='/data/data/DIV2K/lr_train', type=str)
+    parser.add_argument('-h', '--hr-path', default='/data/data/DIV2K/unsupervised/train_HR', type=str)
+    parser.add_argument('-l', '--lr-path', default='/data/data/DIV2K/unsupervised/train_LR_difficult', type=str)
     parser.add_argument('-t', '--target-dir', default='/data/data/DIV2K/train_dataset', type=str)
     parser.add_argument('--crop-size', default=64, type=int)
     parser.add_argument('--crop-step', default=32, type=int)
@@ -28,7 +28,6 @@ def crop(args):
     os.makedirs(os.path.join(args.target_dir, 'lr'), exist_ok=True)
     os.makedirs(os.path.join(args.target_dir, 'hr'), exist_ok=True)
 
-    # open image
     print('start cropping high-resolution images')
     for image_name in tqdm(os.listdir(args.hr_path)):
         image_hr = Image.open(os.path.join(args.hr_path, image_name))
