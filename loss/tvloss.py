@@ -1,11 +1,13 @@
 import torch
+from torch import nn
 
 
 def tensor_size(t: torch.Tensor):
     return t.size()[1] * t.size()[2] * t.size()[3]
 
 
-def tvloss(x: torch.Tensor):
+def tvloss(input: torch.Tensor, generator: nn.Module):
+    x = generator(input)
     batch_size = x.size()[0]
     h_x = x.size()[2]
     w_x = x.size()[3]

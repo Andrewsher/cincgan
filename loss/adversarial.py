@@ -18,11 +18,19 @@ def discriminator_loss(discriminator: nn.Module, fake: torch.Tensor, real: torch
     return loss_d
 
 
-def generator_loss(generator_ab: nn.Module, generator_ba: nn.Module, real: torch.Tensor):
+def cycle_loss(generator_ab: nn.Module, generator_ba: nn.Module, real: torch.Tensor):
     # loss of 2 generators
     fake = generator_ba(generator_ab(real))
-    loss_g = F.mse_loss(fake, real)
+    loss_cycle = F.mse_loss(fake, real)
+    return loss_cycle
+
+
+def generator_discriminator_loss(generator: nn.Module, discriminator: nn.Module, input: torch.Tensor):
+    # loss for generator and discriminator
+    fake = generator(input)
+    d_fake = discriminator(fake)
+    label_d_fake = d_fake.data.new(d_fake.size()).fill_(1)
+
+    loss_g = F.mse_loss(fake, label_d_fake)
     return loss_g
-
-
 
