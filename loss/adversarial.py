@@ -5,13 +5,24 @@ import torch.nn.functional as F
 # from torch.autograd import Variable
 
 
-def adversarial_loss_lr(discriminator: nn.Module, fake: torch.Tensor, real: torch.Tensor):
-    fake_detach = fake.detach()
-    d_fake = discriminator(fake_detach)
-    d_real = discriminator(real)
+def discriminator_loss(discriminator: nn.Module, fake: torch.Tensor, real: torch.Tensor):
+    # loss of Discriminator
+    d_fake = discriminator(fake.detach())
+    d_real = discriminator(real.detach())
 
     label_fake = d_fake.data.new(d_fake.size()).fill_(0)
     label_real = d_real.data.new(d_real.size()).fill_(1)
-    loss_d = F.binary_cross_entropy_with_logits(d_fake, label_fake) + \
-             F.binary_cross_entropy_with_logits(d_real, label_real)
+    loss_d = F.mse_loss(d_fake, label_fake) + \
+             F.mse_loss(d_real, label_real)
+
+    return loss_d
+
+
+def generator_loss(generator_ab: nn.Module, generator_ba: nn.Module, real: torch.Tensor):
+    # loss of 2 generators
+    fake = generator_ba(generator_ab(real))
+    loss_g = F.mse_loss(fake, real)
+    return loss_g
+
+
 
