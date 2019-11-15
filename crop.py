@@ -35,8 +35,8 @@ def crop(args):
         image_hr = Image.open(os.path.join(args.hr_path, image_name))
         image_lr = Image.open(os.path.join(args.lr_path, image_name))
         # crop
-        for cx in range(0, image_hr.shape[0] - args.crop_size, args.crop_step):
-            for cy in range(0, image_hr.shape[1] - args.crop_size, args.crop_step):
+        for cx in range(0, image_hr.size[0] - args.crop_size, args.crop_step):
+            for cy in range(0, image_hr.size[1] - args.crop_size, args.crop_step):
                 current_image_name = '{}_{}_{}.png'.format(image_name.split('.')[0], str(cx), str(cy))
                 # hr
                 current_image_hr = image_hr.crop((cx,

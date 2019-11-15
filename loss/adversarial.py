@@ -31,6 +31,8 @@ def generator_discriminator_loss(generator: nn.Module, discriminator: nn.Module,
     d_fake = discriminator(fake)
     label_d_fake = d_fake.data.new(d_fake.size()).fill_(1)
 
-    loss_g = F.mse_loss(fake, label_d_fake)
+    # print(d_fake.shape, label_d_fake.shape)
+
+    loss_g = F.mse_loss(d_fake, label_d_fake)
     return loss_g
 

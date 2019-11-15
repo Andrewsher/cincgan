@@ -29,18 +29,20 @@ class DIV2KDataset(data.Dataset):
         lr_file_name = self.lr_file_names[item % len(self.lr_file_names)]
         image = Image.open(os.path.join(self.root, 'lr', lr_file_name))
         # image = self.seq(images=image)
-        image = torchvision.transforms.ToTensor()(image)
 
         hr_file_name = self.hr_file_names[item % len(self.hr_file_names)]
         hr_label = Image.open(os.path.join(self.root, 'hr', hr_file_name))
+        lr_label = hr_label.resize((hr_label.size[0]//4, hr_label.size[1]//4), Image.BICUBIC)
+
+        image = torchvision.transforms.ToTensor()(image)
         hr_label = torchvision.transforms.ToTensor()(hr_label)
-        lr_label = hr_label.resize((hr_label.shape[0]//4, hr_label.shape[1]//4), Image.BICUBIC)
         lr_label = torchvision.transforms.ToTensor()(lr_label)
 
         # det = self.seq.to_deterministic()
         # batch_images = det.augment_image(image)
         # batch_labels = det.augment_segmentation_maps(batch_labels)
         # batch_images, batch_labels = self.seq(image=batch_images, segmentation_maps=batch_labels)
+        # print(image.shape, hr_label.shape, lr_label.shape)
 
         return image, hr_label, lr_label
 
