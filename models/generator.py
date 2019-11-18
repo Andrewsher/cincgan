@@ -9,8 +9,8 @@ class Block(nn.Module):
         self.conv2 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=3, padding=1)
 
     def forward(self, x):
-        y = F.relu(self.conv1(x), inplace=True)
-        y = F.relu(self.conv2(y), inplace=True)
+        y = F.leaky_relu(self.conv1(x), inplace=True)
+        y = F.leaky_relu(self.conv2(y), inplace=True)
         y = x + y
         return y
 
@@ -32,18 +32,18 @@ class Generator_lr(nn.Module):
         self.conv6 = nn.Conv2d(in_channels=64, out_channels=in_channels, kernel_size=7, padding=3)
 
     def forward(self, x):
-        y = F.relu(self.conv1(x), inplace=True)
-        y = F.relu(self.conv2(y), inplace=True)
-        y = F.relu(self.conv3(y), inplace=True)
+        y = F.leaky_relu(self.conv1(x), inplace=True)
+        y = F.leaky_relu(self.conv2(y), inplace=True)
+        y = F.leaky_relu(self.conv3(y), inplace=True)
         y = self.block1(y)
         y = self.block2(y)
         y = self.block3(y)
         y = self.block4(y)
         y = self.block5(y)
         y = self.block6(y)
-        y = F.relu(self.conv4(y), inplace=True)
-        y = F.relu(self.conv5(y), inplace=True)
-        y = F.relu(self.conv6(y), inplace=True)
+        y = F.leaky_relu(self.conv4(y), inplace=True)
+        y = F.leaky_relu(self.conv5(y), inplace=True)
+        y = F.leaky_relu(self.conv6(y), inplace=True)
         return y
 
 
@@ -64,18 +64,18 @@ class Generator_sr(nn.Module):
         self.conv6 = nn.Conv2d(in_channels=64, out_channels=in_channels, kernel_size=7, padding=3)
 
     def forward(self, x):
-        y = F.relu(self.conv1(x), inplace=True)
-        y = F.relu(self.conv2(y), inplace=True)
-        y = F.relu(self.conv3(y), inplace=True)
+        y = F.leaky_relu(self.conv1(x), inplace=True)
+        y = F.leaky_relu(self.conv2(y), inplace=True)
+        y = F.leaky_relu(self.conv3(y), inplace=True)
         y = self.block1(y)
         y = self.block2(y)
         y = self.block3(y)
         y = self.block4(y)
         y = self.block5(y)
         y = self.block6(y)
-        y = F.relu(self.conv4(y), inplace=True)
-        y = F.relu(self.conv5(y), inplace=True)
-        y = F.relu(self.conv6(y), inplace=True)
+        y = F.leaky_relu(self.conv4(y), inplace=True)
+        y = F.leaky_relu(self.conv5(y), inplace=True)
+        y = F.leaky_relu(self.conv6(y), inplace=True)
         return y
 
 
@@ -92,4 +92,3 @@ if __name__ == '__main__':
     print(input_maps.shape)
     output_map = model(input_maps)
     print(output_map.shape)
-    

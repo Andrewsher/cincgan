@@ -55,112 +55,112 @@ def main(args):
     train_dataset = DIV2KDataset(root=args.data_path)
     trainloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=3)
 
-    # '''step 1: train LR model'''
-    # # create models
-    # G_1 = Generator_lr(in_channels=3)
-    # G_2 = Generator_lr(in_channels=3)
-    # D_1 = Discriminator_lr(in_channels=3, in_h=16, in_w=16)
-    #
-    # for model in [G_1, G_2, D_1]:
-    #     model.cuda()
-    #     model.train()
-    #
-    # # create optimizors
-    # optim = {
-    #     'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr * 5),
-    #     'G_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_2.parameters()), lr=args.lr * 5),
-    #     'D_1': torch.optim.SGD(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr)
-    # }
-    # for key in optim.keys():
-    #     optim[key].zero_grad()
-    #
-    # print('-' * 20)
-    # print('Start training')
-    # print('-' * 20)
-    # for epoch in range(0, args.epochs):
-    #     G_1.train()
-    #     start = timeit.default_timer()
-    #     for _, batch in enumerate(trainloader):
-    #         iter_index += 1
-    #         image, _, label_lr = batch
-    #         image = image.cuda()
-    #         label_lr = label_lr.cuda()
-    #
-    #         '''loss for lr GAN'''
-    #         '''update G_1 and G_2'''
-    #         for key in optim.keys():
-    #             optim[key].zero_grad()
-    #         # D loss for D_1
-    #         image_clean = G_1(image)
-    #         loss_D1 = discriminator_loss(discriminator=D_1, fake=image_clean, real=label_lr)
-    #         loss_D1.backward()
-    #         optim['D_1'].step()
-    #
-    #         # GD loss for G_1
-    #         loss_G1 = generator_discriminator_loss(generator=G_1, discriminator=D_1, input=image)
-    #         loss_G1.backward()
-    #
-    #         # cycle loss for G_1 and G_2
-    #         loss_cycle = 10 * cycle_loss(G_1, G_2, image)
-    #         loss_cycle.backward()
-    #
-    #         # idt loss for G_1
-    #         loss_idt = 5 * identity_loss(clean_image=label_lr, generator=G_1)
-    #         loss_idt.backward()
-    #
-    #         # tvloss for G_1
-    #         loss_tv = 0.5 * tvloss(input=image, generator=G_1)
-    #         loss_tv.backward()
-    #
-    #         # optimize G_1 and G_2
-    #         optim['G_1'].step()
-    #         optim['G_2'].step()
-    #
-    #         if iter_index % 100 == 0:
-    #             print('iter {}: LR: loss_D1={}, loss_GD={}, loss_cycle={}, loss_idt={}, loss_tv={}'.format(iter_index, loss_D1.item(),
-    #                                                                                                        loss_G1.item(),
-    #                                                                                                        loss_cycle.item(),
-    #                                                                                                        loss_idt.item(),
-    #                                                                                                        loss_tv.item()))
-    #             writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
-    #             writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
-    #             writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
-    #             writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
-    #             writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 100)
-    #             writer.flush()
-    #
-    #     end = timeit.default_timer()
-    #     print('epoch {}, using {} seconds'.format(epoch, end - start))
-    #
-    #     G_1.eval()
-    #     image = Image.open('/data/data/DIV2K/unsupervised/lr/0001x4d.png')
-    #     clean_image = resolv_deonoise(G_1, image)
-    #     # image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda()
-    #     # sr_image_tensor = SR(G_1(image_tensor).detach())
-    #     # sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor[0].cpu())
-    #     clean_image.save(os.path.join(args.log_dir, '0001x4d_clean_{}.png'.format(str(epoch))))
-    #
-    #     torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_1.pkl'))
-    #     torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
-    #     torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
-    #
-    # print('Training denoising model done.')
-    # torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'weights_step_1_G_1.pkl'))
-    # torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'weights_step_1_G_2.pkl'))
-    # torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'weights_step_1_D_1.pkl'))
-    #
-    # image = Image.open('/data/data/DIV2K/unsupervised/lr/0001x4d.png')
-    # image.save(os.path.join(args.log_dir, '0001x4d.png'))
-    # clean_image = resolv_deonoise(G_1, image)
-    # clean_image.save(os.path.join(args.log_dir, '0001x4d_clean.png'))
+    '''step 1: train LR model'''
+    # create models
+    G_1 = Generator_lr(in_channels=3)
+    G_2 = Generator_lr(in_channels=3)
+    D_1 = Discriminator_lr(in_channels=3, in_h=16, in_w=16)
 
-    # ''' clean cache'''
-    # del G_1, G_2, D_1, optim
-    # torch.cuda.empty_cache()
-    # sleep(5)
+    for model in [G_1, G_2, D_1]:
+        model.cuda()
+        model.train()
+
+    # create optimizors
+    optim = {
+        'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr),
+        'G_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_2.parameters()), lr=args.lr),
+        'D_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr / 5.0)
+    }
+    for key in optim.keys():
+        optim[key].zero_grad()
+
+    print('-' * 20)
+    print('Start training')
+    print('-' * 20)
+    for epoch in range(0, args.epochs):
+        G_1.train()
+        start = timeit.default_timer()
+        for _, batch in enumerate(trainloader):
+            iter_index += 1
+            image, _, label_lr = batch
+            image = image.cuda()
+            label_lr = label_lr.cuda()
+
+            '''loss for lr GAN'''
+            '''update G_1 and G_2'''
+            for key in optim.keys():
+                optim[key].zero_grad()
+            # D loss for D_1
+            if iter_index % 10 == 0:
+                image_clean_d = G_1(image).detach()
+                loss_D1 = discriminator_loss(discriminator=D_1, fake=image_clean_d, real=label_lr)
+                loss_D1.backward()
+                optim['D_1'].step()
+
+            # GD loss for G_1
+            loss_G1 = generator_discriminator_loss(generator=G_1, discriminator=D_1, input=image)
+            loss_G1.backward()
+
+            # cycle loss for G_1 and G_2
+            loss_cycle = 10 * cycle_loss(G_1, G_2, image)
+            loss_cycle.backward()
+
+            # idt loss for G_1
+            loss_idt = 5 * identity_loss(clean_image=label_lr, generator=G_1)
+            loss_idt.backward()
+
+            # tvloss for G_1
+            # loss_tv = 0.5 * tvloss(input=image, generator=G_1)
+            # loss_tv.backward()
+
+            # optimize G_1 and G_2
+            optim['G_1'].step()
+            optim['G_2'].step()
+
+            if iter_index % 100 == 0:
+                print('iter {}: LR: loss_D1={}, loss_GD={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_D1.item(),
+                                                                                                           loss_G1.item(),
+                                                                                                           loss_cycle.item(),
+                                                                                                           loss_idt.item()))
+                                                                                                           # loss_tv.item()))
+                writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
+                # writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 100)
+                writer.flush()
+
+        end = timeit.default_timer()
+        print('epoch {}, using {} seconds'.format(epoch, end - start))
+
+        G_1.eval()
+        image = Image.open('/data/data/DIV2K/unsupervised/lr/0001x4d.png')
+        clean_image = resolv_deonoise(G_1, image)
+        # image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda()
+        # sr_image_tensor = SR(G_1(image_tensor).detach())
+        # sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor[0].cpu())
+        clean_image.save(os.path.join(args.log_dir, '0001x4d_clean_{}.png'.format(str(epoch))))
+
+        torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_1.pkl'))
+        torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
+        torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
+
+    print('Training denoising model done.')
+    torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'weights_step_1_G_1.pkl'))
+    torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'weights_step_1_G_2.pkl'))
+    torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'weights_step_1_D_1.pkl'))
+
+    image = Image.open('/data/data/DIV2K/unsupervised/lr/0001x4d.png')
+    image.save(os.path.join(args.log_dir, '0001x4d.png'))
+    clean_image = resolv_deonoise(G_1, image)
+    clean_image.save(os.path.join(args.log_dir, '0001x4d_clean.png'))
+
+    ''' clean cache'''
+    del G_1, G_2, D_1, optim
+    torch.cuda.empty_cache()
+    sleep(5)
 
     '''step 2: train SR model'''
-    iter_index = 40000
     # create models
     G_1 = Generator_lr(in_channels=3)
     SR = EDSR(n_colors=3)
@@ -202,19 +202,21 @@ def main(args):
             '''update G_1, SR and G_3'''
             for key in optim.keys():
                 optim[key].zero_grad()
-            image_clean = G_1(image).detach()
+
+            image_clean = G_1(image)
+            image_clean_detach = image_clean.detach()
             # D loss for D_2
-            image_sr = SR(image_clean)
+            image_sr = SR(image_clean_detach)
             loss_D2 = discriminator_loss(discriminator=D_2, fake=image_sr, real=label_hr)
             loss_D2.backward()
             optim['D_2'].step()
 
-            # GD loss for SR
+            # GD loss for SR and G_1
             loss_SR = generator_discriminator_loss(generator=SR, discriminator=D_2, input=image_clean)
             loss_SR.backward()
 
             # cycle loss for SR and G_3
-            loss_cycle = 10 * cycle_loss(SR, G_3, image_clean)
+            loss_cycle = 10 * cycle_loss(SR, G_3, image_clean_detach)
             loss_cycle.backward()
 
             # idt loss for SR
@@ -222,8 +224,8 @@ def main(args):
             loss_idt.backward()
 
             # tvloss for SR
-            loss_tv = 0.5 * tvloss(input=image_clean, generator=SR)
-            loss_tv.backward()
+            # loss_tv = 0.5 * tvloss(input=image_clean, generator=SR)
+            # loss_tv.backward()
 
             # optimize G_1, SR and G_3
             optim['G_1'].step()
@@ -232,16 +234,16 @@ def main(args):
 
             if iter_index % 100 == 0:
                 print(
-                    '         SR: loss_D2={}, loss_SR={}, loss_cycle={}, loss_idt={}, loss_tv={}'.format(loss_D2.item(),
+                    'iter {}: SR: loss_D2={}, loss_SR={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_D2.item(),
                                                                                                          loss_SR.item(),
                                                                                                          loss_cycle.item(),
-                                                                                                         loss_idt.item(),
-                                                                                                         loss_tv.item()))
+                                                                                                         loss_idt.item()))
+                                                                                                         # loss_tv.item()))
                 writer.add_scalar('SR/loss_D2', loss_D2.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_SR', loss_SR.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_idt', loss_idt.item(), iter_index // 100)
-                writer.add_scalar('SR/loss_tv', loss_tv.item(), iter_index // 100)
+                # writer.add_scalar('SR/loss_tv', loss_tv.item(), iter_index // 100)
                 writer.flush()
 
         end = timeit.default_timer()

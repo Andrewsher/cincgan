@@ -18,19 +18,19 @@ class Discriminator_lr(nn.Module):
         self.linear2 = nn.Linear(in_features=1024, out_features=1)
 
     def forward(self, x):
-        y = F.relu(self.conv1(x), inplace=True)
-        y = F.relu(self.bn1(self.conv2(y)), inplace=True)
-        y = F.relu(self.bn2(self.conv3(y)), inplace=True)
-        y = F.relu(self.bn3(self.conv4(y)), inplace=True)
-        y = F.relu(self.conv5(y), inplace=True)
+        y = F.leaky_relu(self.conv1(x), inplace=True)
+        y = F.leaky_relu(self.bn1(self.conv2(y)), inplace=True)
+        y = F.leaky_relu(self.bn2(self.conv3(y)), inplace=True)
+        y = F.leaky_relu(self.bn3(self.conv4(y)), inplace=True)
+        y = F.leaky_relu(self.conv5(y), inplace=True)
 
         # y = y.flatten(1, -1)
         # y = nn.Linear(in_features=y.shape[-1], out_features=1024)
         # y.shape[-1]
 
         # y = F.relu(self.linear1(y.view(y.size(0), -1)), inplace=True)
-        y = F.relu(self.linear1(y.flatten(1, -1)), inplace=True)
-        y = self.linear2(y)
+        y = F.leaky_relu(self.linear1(y.flatten(1, -1)), inplace=True)
+        y = F.sigmoid(self.linear2(y))
 
         return y
 
@@ -51,19 +51,19 @@ class Discriminator_sr(nn.Module):
         self.linear2 = nn.Linear(in_features=128, out_features=1)
 
     def forward(self, x):
-        y = F.relu(self.conv1(x), inplace=True)
-        y = F.relu(self.bn1(self.conv2(y)), inplace=True)
-        y = F.relu(self.bn2(self.conv3(y)), inplace=True)
-        y = F.relu(self.bn3(self.conv4(y)), inplace=True)
-        y = F.relu(self.conv5(y), inplace=True)
+        y = F.leaky_relu(self.conv1(x), inplace=True)
+        y = F.leaky_relu(self.bn1(self.conv2(y)), inplace=True)
+        y = F.leaky_relu(self.bn2(self.conv3(y)), inplace=True)
+        y = F.leaky_relu(self.bn3(self.conv4(y)), inplace=True)
+        y = F.leaky_relu(self.conv5(y), inplace=True)
 
         y = y.flatten(1, -1)
-        y = F.relu(self.linear1(y), inplace=True)
+        y = F.leaky_relu(self.linear1(y), inplace=True)
         # y = nn.Linear(in_features=y.shape[-1], out_features=1024)
         # y.shape[-1]
 
         # y = F.relu(self.linear1(y.view(y.size(0), -1)), inplace=True)
-        y = self.linear2(y)
+        y = F.sigmoid(self.linear2(y))
 
         return y
 
