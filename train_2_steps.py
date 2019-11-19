@@ -69,7 +69,7 @@ def main(args):
     optim = {
         'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr),
         'G_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_2.parameters()), lr=args.lr),
-        'D_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr / 5.0)
+        'D_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr)
     }
     for key in optim.keys():
         optim[key].zero_grad()
@@ -122,18 +122,18 @@ def main(args):
             loss.backward()
 
             # optimize D_1, G_1 and G_2
-            # optim['D_1'].step()
+            optim['D_1'].step()
             optim['G_1'].step()
             optim['G_2'].step()
 
             if iter_index % 100 == 0:
-                print('iter {}: LR: loss_D1={}, loss_GD={}, loss_cycle={}, loss_idt={}, loss_tv = {}'.format(iter_index,
-                                                                                                             loss_D1.item(),
+                print('iter {}: LR: loss_GD={}, loss_cycle={}, loss_idt={}, loss_tv = {}'.format(iter_index,
+                                                                                                             # loss_D1.item(),
                                                                                                              loss_G1.item(),
                                                                                                              loss_cycle.item(),
                                                                                                              loss_idt.item(),
                                                                                                              loss_tv.item()))
-                writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
+                # writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
@@ -167,29 +167,30 @@ def main(args):
     clean_image = resolv_deonoise(G_1, image)
     clean_image.save(os.path.join(args.log_dir, '0001x4d_clean.png'))
 
-    ''' clean cache'''
-    del G_1, G_2, D_1, optim
-    torch.cuda.empty_cache()
-    sleep(5)
+    # ''' clean cache'''
+    # del G_1, G_2, D_1, optim
+    # torch.cuda.empty_cache()
+    # sleep(5)
 
     '''step 2: train SR model'''
     # create models
-    G_1 = Generator_lr(in_channels=3)
     SR = EDSR(n_colors=3)
     G_3 = Generator_sr(in_channels=3)
     D_2 = Discriminator_sr(in_channels=3, in_h=64, in_w=64)
 
     # load pretrained model
-    G_1.load_state_dict(torch.load(os.path.join(args.log_dir, 'weights_step_1_G_1.pkl')))
+    # G_1.load_state_dict(torch.load(os.path.join(args.log_dir, 'weights_step_1_G_1.pkl')))
 
-    for model in [G_1, SR, G_3, D_2]:
+    for model in [G_1, G_2, D_1, SR, G_3, D_2]:
         model.cuda()
         model.train()
 
     # create optimizors
     optim = {
-        'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr * 5),
-        'SR': torch.optim.Adam(params=filter(lambda p: p.requires_grad, SR.parameters()), lr=args.lr * 5),
+        'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr),
+        'G_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_2.parameters()), lr=args.lr),
+        'D_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr),
+        'SR': torch.optim.Adam(params=filter(lambda p: p.requires_grad, SR.parameters()), lr=args.lr),
         'G_3': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_3.parameters()), lr=args.lr),
         'D_2': torch.optim.SGD(params=filter(lambda p: p.requires_grad, D_2.parameters()), lr=args.lr)
     }
@@ -199,7 +200,7 @@ def main(args):
     print('-' * 20)
     print('Start training')
     print('-' * 20)
-    for epoch in range(args.epochs // 2, args.epochs // 2 * 3):
+    for epoch in range(args.epochs // 2, args.epochs):
         G_1.train()
         SR.train()
         start = timeit.default_timer()
@@ -210,6 +211,53 @@ def main(args):
             label_hr = label_hr.cuda()
             label_lr = label_lr.cuda()
 
+            '''loss for lr GAN'''
+            '''update G_1 and G_2'''
+            optim['D_1'].zero_grad()
+            optim['G_1'].zero_grad()
+            optim['G_2'].zero_grad()
+
+            # GD loss for G_1
+            loss_G1 = generator_discriminator_loss(generator=G_1, discriminator=D_1, input=image)
+            # loss_G1.backward()
+
+            # cycle loss for G_1 and G_2
+            loss_cycle = 10 * cycle_loss(G_1, G_2, image)
+            # loss_cycle.backward()
+
+            # idt loss for G_1
+            loss_idt = identity_loss(clean_image=label_lr, generator=G_1)
+            # loss_idt.backward()
+
+            # tvloss for G_1
+            loss_tv = 0.5 * tvloss(input=image, generator=G_1)
+            # loss_tv.backward()
+
+            # loss functions
+            loss = loss_G1 + loss_cycle + loss_idt + loss_tv
+            loss.backward()
+
+            # optimize D_1, G_1 and G_2
+            optim['D_1'].step()
+            optim['G_1'].step()
+            optim['G_2'].step()
+
+            if iter_index % 100 == 0:
+                print('iter {}: LR: loss_GD={}, loss_cycle={}, loss_idt={}, loss_tv = {}'.format(iter_index,
+                                                                                                 # loss_D1.item(),
+                                                                                                 loss_G1.item(),
+                                                                                                 loss_cycle.item(),
+                                                                                                 loss_idt.item(),
+                                                                                                 loss_tv.item()))
+                # writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 100)
+                writer.add_image('LR/origin', image[0], iter_index // 100)
+                writer.add_image('LR/denoise', G_1(image)[0], iter_index // 100)
+                writer.flush()
+
             '''loss for sr GAN'''
             '''update G_1, SR and G_3'''
             for key in optim.keys():
@@ -218,10 +266,10 @@ def main(args):
             image_clean = G_1(image)
             image_clean_detach = image_clean.detach()
             # D loss for D_2
-            image_sr = SR(image_clean_detach)
-            loss_D2 = discriminator_loss(discriminator=D_2, fake=image_sr, real=label_hr)
-            loss_D2.backward()
-            optim['D_2'].step()
+            # image_sr = SR(image_clean_detach)
+            # loss_D2 = discriminator_loss(discriminator=D_2, fake=image_sr, real=label_hr)
+            # loss_D2.backward()
+            # optim['D_2'].step()
 
             # GD loss for SR and G_1
             loss_SR = generator_discriminator_loss(generator=SR, discriminator=D_2, input=image_clean)
@@ -236,25 +284,28 @@ def main(args):
             # loss_idt.backward()
 
             # tvloss for SR
-            loss_tv = 0.5 * tvloss(input=image_clean, generator=SR)
+            loss_tv = 2 * tvloss(input=image_clean, generator=SR)
             # loss_tv.backward()
 
             loss = loss_SR +loss_cycle + loss_idt + loss_tv
             loss.backward()
 
             # optimize G_1, SR and G_3
+            optim['D_2'].step()
             optim['G_1'].step()
             optim['SR'].step()
             optim['G_3'].step()
 
             if iter_index % 100 == 0:
                 print(
-                    'iter {}: SR: loss_D2={}, loss_SR={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_D2.item(),
-                                                                                                         loss_SR.item(),
-                                                                                                         loss_cycle.item(),
-                                                                                                         loss_idt.item()))
-                                                                                                         # loss_tv.item()))
-                writer.add_scalar('SR/loss_D2', loss_D2.item(), iter_index // 100)
+                    'iter {}: SR: loss_SR={}, loss_cycle={}, loss_idt={}, loss_tv={}'.format(iter_index,
+                                                                                             # loss_D2.item(),
+                                                                                             loss_SR.item(),
+                                                                                             loss_cycle.item(),
+                                                                                             loss_idt.item(),
+                                                                                             loss_tv.item()))
+                # writer.add_scalar('SR/loss_D2', loss_D2.item(), iter_index // 100)
+                writer.add_scalar('SR/loss_G1', loss_G1.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_SR', loss_SR.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_idt', loss_idt.item(), iter_index // 100)
@@ -277,8 +328,8 @@ def main(args):
         sr_image.save(os.path.join(args.log_dir, '0001x4d_sr_{}.png'.format(str(epoch))))
 
         torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_1.pkl'))
-        # torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
-        # torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
+        torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
+        torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
         torch.save(SR.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_SR.pkl'))
         torch.save(G_3.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_3.pkl'))
         torch.save(D_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_2.pkl'))
