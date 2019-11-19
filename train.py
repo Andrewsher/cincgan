@@ -134,6 +134,8 @@ def main(args):
                 writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 100)
+                writer.add_image('LR/origin', image[0], iter_index // 100)
+                writer.add_image('LR/denoise', G_1(image)[0], iter_index // 100)
 
             '''loss for sr GAN'''
             '''update G_1, SR and G_3'''
@@ -178,6 +180,9 @@ def main(args):
                 writer.add_scalar('SR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_idt', loss_idt.item(), iter_index // 100)
                 writer.add_scalar('SR/loss_tv', loss_tv.item(), iter_index // 100)
+                writer.add_image('SR/origin', image[0], iter_index // 100)
+                writer.add_image('SR/clean_image', G_1(image)[0], iter_index // 100)
+                writer.add_image('SR/SR', SR(G_1(image))[0], iter_index // 100)
                 writer.flush()
 
         end = timeit.default_timer()
