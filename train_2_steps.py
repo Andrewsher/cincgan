@@ -88,14 +88,15 @@ def main(args):
 
             '''loss for lr GAN'''
             '''update G_1 and G_2'''
-            for key in optim.keys():
-                optim[key].zero_grad()
+            optim['D_1'].zero_grad()
+            optim['G_1'].zero_grad()
+            optim['G_2'].zero_grad()
             # D loss for D_1
-            if iter_index % 10 == 0:
-                image_clean_d = G_1(image).detach()
-                loss_D1 = discriminator_loss(discriminator=D_1, fake=image_clean_d, real=label_lr)
-                loss_D1.backward()
-                optim['D_1'].step()
+            # if iter_index % 10 == 0:
+            #     image_clean_d = G_1(image).detach()
+            #     loss_D1 = discriminator_loss(discriminator=D_1, fake=image_clean_d, real=label_lr)
+            #     loss_D1.backward()
+            #     optim['D_1'].step()
 
             # GD loss for G_1
             loss_G1 = generator_discriminator_loss(generator=G_1, discriminator=D_1, input=image)
@@ -113,17 +114,17 @@ def main(args):
             # loss_tv = 0.5 * tvloss(input=image, generator=G_1)
             # loss_tv.backward()
 
-            # optimize G_1 and G_2
+            # optimize D_1, G_1 and G_2
+            optim['D_1'].step()
             optim['G_1'].step()
             optim['G_2'].step()
 
             if iter_index % 100 == 0:
-                print('iter {}: LR: loss_D1={}, loss_GD={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_D1.item(),
-                                                                                                           loss_G1.item(),
+                print('iter {}: LR: loss_GD={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_G1.item(),
                                                                                                            loss_cycle.item(),
                                                                                                            loss_idt.item()))
                                                                                                            # loss_tv.item()))
-                writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
+                # writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
                 writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
@@ -259,8 +260,8 @@ def main(args):
         sr_image.save(os.path.join(args.log_dir, '0001x4d_sr_{}.png'.format(str(epoch))))
 
         torch.save(G_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_1.pkl'))
-        torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
-        torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
+        # torch.save(G_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_2.pkl'))
+        # torch.save(D_1.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_1.pkl'))
         torch.save(SR.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_SR.pkl'))
         torch.save(G_3.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_G_3.pkl'))
         torch.save(D_2.state_dict(), os.path.join(args.log_dir, 'ep-' + str(epoch) + '_D_2.pkl'))

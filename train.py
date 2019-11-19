@@ -66,10 +66,10 @@ def main(args):
     optim = {
         'G_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_1.parameters()), lr=args.lr * 5),
         'G_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_2.parameters()), lr=args.lr * 5),
-        'D_1': torch.optim.SGD(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr),
+        'D_1': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_1.parameters()), lr=args.lr),
         'SR': torch.optim.Adam(params=filter(lambda p: p.requires_grad, SR.parameters()), lr=args.lr * 5),
         'G_3': torch.optim.Adam(params=filter(lambda p: p.requires_grad, G_3.parameters()), lr=args.lr),
-        'D_2': torch.optim.SGD(params=filter(lambda p: p.requires_grad, D_2.parameters()), lr=args.lr)
+        'D_2': torch.optim.Adam(params=filter(lambda p: p.requires_grad, D_2.parameters()), lr=args.lr)
     }
     for key in optim.keys():
         optim[key].zero_grad()
