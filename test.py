@@ -36,14 +36,14 @@ def parse_args():
 
 
 def resolv_sr(G_1: nn.Module, SR: nn.Module, image: Image):
-    image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda() / 255.
+    image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda()
     sr_image_tensor = (SR(G_1(image_tensor)).cpu() * 255).clamp(min=0, max=255).round().byte()
     sr_image = torchvision.transforms.functional.to_pil_image(sr_image_tensor[0])
     return sr_image
 
 
 def resolv_deonoise(G_1: nn.Module, image: Image):
-    image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda() / 255.
+    image_tensor = torchvision.transforms.functional.to_tensor(image).unsqueeze(0).cuda()
     clean_image_tensor = (G_1(image_tensor).cpu() * 255).clamp(min=0, max=255).round().byte()
     clean_image = torchvision.transforms.functional.to_pil_image(clean_image_tensor[0])
     return clean_image

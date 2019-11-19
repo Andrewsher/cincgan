@@ -44,5 +44,5 @@ class DIV2KDataset(data.Dataset):
         # batch_images, batch_labels = self.seq(image=batch_images, segmentation_maps=batch_labels)
         # print(image.shape, hr_label.shape, lr_label.shape)
 
-        return image / 255., hr_label / 255., lr_label / 255.
+        return image, hr_label, lr_label
 

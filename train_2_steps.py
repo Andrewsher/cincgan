@@ -79,10 +79,13 @@ def main(args):
     print('-' * 20)
     for epoch in range(0, args.epochs):
         G_1.train()
+        D_1.train()
+        G_2.train()
         start = timeit.default_timer()
         for _, batch in enumerate(trainloader):
             iter_index += 1
             image, _, label_lr = batch
+
             image = image.cuda()
             label_lr = label_lr.cuda()
 
@@ -100,35 +103,41 @@ def main(args):
 
             # GD loss for G_1
             loss_G1 = generator_discriminator_loss(generator=G_1, discriminator=D_1, input=image)
-            loss_G1.backward()
+            # loss_G1.backward()
 
             # cycle loss for G_1 and G_2
             loss_cycle = 10 * cycle_loss(G_1, G_2, image)
-            loss_cycle.backward()
+            # loss_cycle.backward()
 
             # idt loss for G_1
             loss_idt = 5 * identity_loss(clean_image=label_lr, generator=G_1)
-            loss_idt.backward()
+            # loss_idt.backward()
 
             # tvloss for G_1
-            # loss_tv = 0.5 * tvloss(input=image, generator=G_1)
+            loss_tv = 0.5 * tvloss(input=image, generator=G_1)
             # loss_tv.backward()
+
+            # loss functions
+            loss = loss_G1 + loss_cycle + loss_idt + loss_tv
+            loss.backward()
 
             # optimize D_1, G_1 and G_2
             optim['D_1'].step()
             optim['G_1'].step()
             optim['G_2'].step()
 
-            if iter_index % 100 == 0:
-                print('iter {}: LR: loss_GD={}, loss_cycle={}, loss_idt={}'.format(iter_index, loss_G1.item(),
+            if iter_index % 10 == 0:
+                print('iter {}: LR: loss_GD={}, loss_cycle={}, loss_idt={}, loss_tv = {}'.format(iter_index, loss_G1.item(),
                                                                                                            loss_cycle.item(),
-                                                                                                           loss_idt.item()))
-                                                                                                           # loss_tv.item()))
+                                                                                                           loss_idt.item(),
+                                                                                                           loss_tv.item()))
                 # writer.add_scalar('LR/loss_D1', loss_D1.item(), iter_index // 100)
-                writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 100)
-                writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 100)
-                writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 100)
-                # writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 100)
+                writer.add_scalar('LR/loss_GD', loss_G1.item(), iter_index // 10)
+                writer.add_scalar('LR/loss_cycle', loss_cycle.item(), iter_index // 10)
+                writer.add_scalar('LR/loss_idt', loss_idt.item(), iter_index // 10)
+                writer.add_scalar('LR/loss_tv', loss_tv.item(), iter_index // 10)
+                writer.add_image('LR/origin', image[0], iter_index)
+                writer.add_image('LR/denoise', G_1(image)[0], iter_index)
                 writer.flush()
 
         end = timeit.default_timer()
