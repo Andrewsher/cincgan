@@ -31,9 +31,9 @@ def crop(args):
 
     # open image
     assert len(os.listdir(args.lr_path)) == os.listdir(args.hr_path)
-    for image_name in tqdm(os.listdir(args.lr_path)):
+    for image_name in tqdm(os.listdir(args.hr_path)):
         image_hr = Image.open(os.path.join(args.hr_path, image_name))
-        image_lr = Image.open(os.path.join(args.lr_path, image_name))
+        image_lr = Image.open(os.path.join(args.lr_path, image_name.split('.')[0] + 'x4d.png'))
         # crop
         for cx in range(0, image_hr.size[0] - args.crop_size, args.crop_step):
             for cy in range(0, image_hr.size[1] - args.crop_size, args.crop_step):
